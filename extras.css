@@ -11,7 +11,7 @@
 .panel.live a{ pointer-events:auto; }
 .pnl-h{
   flex:none; margin:0 0 14px; text-align:center;
-  font:700 12px/1 'Inter', system-ui, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:#f2cf75;
+  font:700 12px/1 'Inter', system-ui, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:#ffdd3a;
 }
 
 /* timeline */
@@ -22,40 +22,50 @@
 }
 .tl-list{ --tp:0; list-style:none; margin:0; padding:10px 0 10px 34px; position:relative; will-change:transform; }
 .tl-list::before, .tl-list::after{ content:''; position:absolute; left:9px; top:18px; bottom:18px; width:2px; border-radius:2px; }
-.tl-list::before{ background:rgba(255,255,255,.2); }
-.tl-list::after{ background:#f2cf75; transform-origin:top; transform:scaleY(var(--tp)); }
+.tl-list::before{ background:rgba(85,201,242,.28); }
+.tl-list::after{ background:linear-gradient(to bottom, #55c9f2, #ffdd3a); transform-origin:top; transform:scaleY(var(--tp)); }
 .tl-item{ position:relative; padding:0 0 26px; will-change:opacity, transform; }
 .tl-item:last-child{ padding-bottom:6px; }
 .tl-dot{
   position:absolute; left:-30px; top:3px; width:12px; height:12px; border-radius:50%;
-  background:#2d1a10; border:2px solid #f2cf75; box-shadow:0 0 0 4px rgba(242,207,117,.15);
+  background:#101e96; border:2px solid #ffdd3a; box-shadow:0 0 0 4px rgba(255,221,58,.18);
 }
-.tl-when{ display:block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#f2cf75; }
+.tl-when{ display:block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#ffdd3a; }
 .tl-item h3{ margin:3px 0 0; font-size:clamp(17px, 2.1vw, 22px); font-weight:700; line-height:1.2; }
-.tl-org{ display:block; font-size:14px; opacity:.75; }
+.tl-org{ display:block; font-size:14px; color:#55c9f2; }
 .tl-item p{ margin:8px 0 0; max-width:62ch; font-size:14px; line-height:1.5; font-weight:300; opacity:.92; }
 .tl-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-.tl-tags em{ font-style:normal; font-size:11px; padding:3px 9px; border:1px solid rgba(255,255,255,.35); border-radius:99px; }
+.tl-tags em{ font-style:normal; font-size:11px; padding:3px 9px; border:1px solid rgba(85,201,242,.6); border-radius:99px; color:#cdeffc; background:rgba(16,30,150,.35); }
 
 /* achievements */
-.ach{ height:auto; max-height:78vh; justify-content:center; }
+.ach-view{
+  flex:1; min-height:0; overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 5%, #000 95%, transparent 100%);
+          mask-image:linear-gradient(to bottom, transparent 0, #000 5%, #000 95%, transparent 100%);
+}
+.ach-list{ padding:6px 0; will-change:transform; }
 .ach-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .ach-card{
   display:flex; gap:12px; padding:14px 16px; border-radius:14px;
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.22);
+  background:rgba(16,30,150,.45); border:1px solid rgba(85,201,242,.38);
   backdrop-filter:blur(6px); will-change:opacity, transform; text-shadow:none;
 }
-.ach-ico{ flex:none; font-size:26px; line-height:1; }
+.ach-ico{
+  position:relative; flex:none; width:44px; height:44px; display:grid; place-items:center; overflow:hidden;
+  border-radius:10px; background:#fff; color:#101e96; text-shadow:none;
+  font:800 18px/1 'Inter', system-ui, sans-serif;
+}
+.ach-ico img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:5px; background:#fff; }
 .ach-card h3{ margin:0; font-size:15px; font-weight:700; line-height:1.25; }
-.ach-card small{ display:block; margin-top:3px; font-size:12px; opacity:.7; }
-.ach-card p{ margin:6px 0 0; font-size:13px; line-height:1.4; color:#f2cf75; }
+.ach-card small{ display:block; margin-top:3px; font-size:12px; color:#cdeffc; opacity:.85; }
+.ach-card p{ margin:6px 0 0; font-size:13px; line-height:1.4; color:#ffdd3a; }
 .ach-links{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:22px; will-change:opacity, transform; }
 .pill{
   padding:9px 18px; border-radius:99px; text-decoration:none; text-shadow:none;
-  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.4); color:#fff;
+  background:rgba(79,119,255,.35); border:1px solid #55c9f2; color:#fff;
   font:600 13px/1 'Inter', system-ui, sans-serif; letter-spacing:.04em; transition:background .15s, color .15s;
 }
-.pill:hover, .pill:focus-visible{ background:#f2cf75; color:#2d1a10; outline:none; }
+.pill:hover, .pill:focus-visible{ background:#ffdd3a; border-color:#ffdd3a; color:#101e96; outline:none; }
 
 /* when you enter the room, the last panel zooms away like the about text did */
 #load.out .panel{
@@ -68,20 +78,30 @@
 #steps{ position:absolute; top:max(18px, 3vh); left:50%; translate:-50% 0; z-index:3; display:flex; gap:6px; }
 #steps button{
   all:unset; cursor:pointer; padding:8px 12px; border-radius:99px;
-  background:rgba(0,0,0,.25); color:rgba(255,255,255,.75);
+  background:rgba(16,30,150,.45); color:rgba(255,255,255,.8);
   font:400 12px/1 'Inter', system-ui, sans-serif; letter-spacing:.12em; text-transform:uppercase;
   transition:background .15s, color .15s;
 }
-#steps button:hover{ background:rgba(0,0,0,.4); }
-#steps button.on{ background:#f2cf75; color:#2d1a10; font-weight:700; }
+#steps button:hover{ background:rgba(16,30,150,.7); }
+#steps button.on{ background:#ffdd3a; color:#101e96; font-weight:700; }
 #steps button:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
 #load.out #steps{ opacity:0; transition:opacity .3s; }
 
 @media (max-width:640px){
-  #steps{ top:calc(max(18px, 3vh) + 42px); }          /* below the skip button */
+  .panel{
+    top:calc(50% + 18px); width:92vw;
+    height:calc(100vh - 200px); height:calc(100dvh - 200px);
+  }
+  #steps{ top:calc(max(18px, 3vh) + 42px); }
+  .pnl-h{ margin-bottom:10px; }
+  .tl-list{ padding-left:28px; }
+  .tl-dot{ left:-24px; }
+  .tl-item p{ font-size:13px; }
   .ach-grid{ grid-template-columns:1fr; gap:8px; }
   .ach-card{ padding:10px 12px; }
+  .ach-card h3{ font-size:14px; }
   .ach-card p{ font-size:12px; margin-top:4px; }
+  .ach-ico{ width:38px; height:38px; font-size:16px; }
   .ach-links{ margin-top:14px; gap:8px; }
   .pill{ padding:8px 14px; font-size:12px; }
 }

@@ -14,7 +14,8 @@ export function flappy(k) {
   reset();
 
   const flap = () => (dead ? reset() : (b.v = -6));
-  k.onpointerdown = flap;
+  k.style.touchAction = 'none';
+  k.onpointerdown = e => { e.preventDefault(); flap(); };
 
   const key = e => {
     if (e.code === 'Space') {

@@ -71,8 +71,9 @@ const intro = initIntro({
 });
 
 // ───────────── renderer, scene, camera ─────────────
-const renderer = new T.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+const coarse = matchMedia('(pointer: coarse)').matches;
+const renderer = new T.WebGLRenderer({ canvas, antialias: !coarse });
+renderer.setPixelRatio(Math.min(devicePixelRatio, coarse ? 1.25 : 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = T.PCFSoftShadowMap;
 

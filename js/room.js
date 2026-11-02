@@ -642,9 +642,11 @@ export function buildRoom(scene, on, actions) {
       const wb = new T.Box3().setFromObject(holder);
       const ws = wb.getSize(new T.Vector3());
       const apply = s => {
+        scene.add(s.mesh);   // balik ke world space dulu, supaya angka fx/fy/fz artinya sama tiap dipanggil
         s.mesh.position.set(wb.min.x + s.fx * ws.x, wb.min.y + s.fy * ws.y, wb.min.z + s.fz * ws.z);
         s.mesh.scale.set(s.fw * ws.x, s.fh * ws.y, 1);
         s.mesh.rotation.set(s.rx || 0, s.ry || 0, 0);
+        holder.attach(s.mesh); // jadi child PC, world transform tetap sama
       };
       SCREENS.forEach(s => {
         s.mesh = new T.Mesh(
@@ -725,6 +727,7 @@ export function buildRoom(scene, on, actions) {
           const lb = new T.Box3().setFromObject(holder);
           // pull the whole lamp forward until its backmost point clears the wall
           if (lb.min.z < B + LAMP_WALL_GAP) {
+            pc.attach(holder);
             // recolor red -> yellow
             const LAMP_HUE = 50;   // degrees to rotate (0 = stays red, 50 = yellow, 25 = orange)
             const toYellow = m => {
@@ -1140,7 +1143,8 @@ export function buildRoom(scene, on, actions) {
   sun.target.position.set(0, 0, 0.5);
   scene.add(sun, sun.target);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  const shadowSize = matchMedia('(pointer: coarse)').matches ? 1024 : 2048;
+  sun.shadow.mapSize.set(shadowSize, shadowSize);
   sun.shadow.bias = -0.0004;      // fixes the staircase patterns on furniture
   sun.shadow.normalBias = 0.04;
   sun.shadow.radius = 4;

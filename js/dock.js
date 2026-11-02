@@ -1,35 +1,12 @@
-// Bottom-left dock: CV download + guestbook.
-// Call initDock() once from main.js.
-//
-// ───────── making the guestbook shared (so every visitor sees every note) ─────────
-// 1. Create a free project at supabase.com
-// 2. SQL editor → run:
-//
-//    create table guestbook (
-//      id bigint generated always as identity primary key,
-//      name text not null check (char_length(name) between 1 and 40),
-//      message text not null check (char_length(message) between 1 and 300),
-//      created_at timestamptz not null default now()
-//    );
-//    alter table guestbook enable row level security;
-//    create policy "anyone can read" on guestbook for select using (true);
-//    create policy "anyone can sign" on guestbook for insert with check (true);
-//    grant select, insert on guestbook to anon;
-//
-// 3. Project settings → API: paste the Project URL and the *anon public* key below.
-//    (The anon key is meant to be public. The policies above only allow reading and adding notes.)
-// 4. To remove a rude note: Table editor → delete the row.
-//
-// Until url + anonKey are filled in, notes are saved only in the visitor's own browser.
 import { CV_FILE } from './story.js';
 
 const CV = { icon: 'textures/cv.png', file: CV_FILE, saveAs: 'Almira-Raisa-Izzatina-CV.pdf' };
 
 const GUESTBOOK = {
-  url: 'https://pxntcijijjpyvsifqidl.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bnRjaWppampweXZzaWZxaWRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1ODEyMTYsImV4cCI6MjEwOTE1NzIxNn0.goTS7SQPBsWnLh8g-FXZUlEzxbVjmZOAjzBI6kfyS_U',
+  url: '',        // e.g. 'https://abcdxyz.supabase.co'
+  anonKey: '',    // anon public key
   table: 'guestbook',
-  limit: 60,
+  limit: 60,      // newest notes shown
 };
 
 const LIVE = !!(GUESTBOOK.url && GUESTBOOK.anonKey);

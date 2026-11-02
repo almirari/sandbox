@@ -53,7 +53,7 @@
 @media (orientation:portrait){
   #bgB{ background-image:url(main-portrait.png); }
 }
-.shade{ position:absolute; inset:0; background:rgba(45,26,16,.6); }   /* dark enough for light text; lower it once you have a real photo */
+.shade{ position:absolute; inset:0; background:linear-gradient(rgba(16,30,150,.05), rgba(10,18,80,.08)); }
 
 .stamp{
   position:absolute; top:max(22px, 4vh); left:50%; translate:-50% 0; opacity:0;
@@ -98,7 +98,7 @@
   font-size:max(13px, .3em); font-weight:400; letter-spacing:0; line-height:1.4;
   color:rgba(255,255,255,.55); transition:color .2s;
 }
-.beat.intro .fact.on{ color:#f2cf75; }
+.beat.intro .fact.on{ color:#ffdd3a; }
 
 #status{
   position:absolute; left:50%; bottom:max(64px, 9vh); translate:-50% 0;
@@ -125,15 +125,22 @@
 }
 #skip:hover{ background:rgba(0,0,0,.4); }
 
-/* "click anywhere to continue" prompt */
+/* "click anywhere to continue": centered dark pill, shown once the cards are gone */
 #cta{
-  position:absolute; left:50%; bottom:max(64px, 9vh); translate:-50% 0;
-  margin:0; opacity:0; pointer-events:none;
-  font:500 13px/1 'Inter', system-ui, sans-serif; letter-spacing:.14em; text-transform:uppercase;
-  color:rgba(255,255,255,.85);
-  white-space: nowrap;
+  position:absolute; left:50%; top:50%; bottom:auto; translate:-50% -50%; z-index:3;
+  margin:0; opacity:0; pointer-events:none; white-space:nowrap;
+  font:600 13px/1 'Inter', system-ui, sans-serif; letter-spacing:.14em; text-transform:uppercase;
+  color:#fff;
 }
-#cta span{ display:block; animation:pulse 1.8s ease-in-out infinite; }
+#cta span{
+  display:block; padding:0; background:none; border:0; box-shadow:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.8), 0 0 18px rgba(0,0,0,.6);
+  animation:pulse 1.8s ease-in-out infinite;
+}
+@keyframes ctaGlow{
+  0%,100%{ box-shadow:0 4px 18px rgba(0,0,0,.35), 0 0 0 0 rgba(255,221,58,0); }
+  50%{ box-shadow:0 4px 18px rgba(0,0,0,.35), 0 0 0 5px rgba(255,221,58,.28); }
+}
 
 #halftone{
   position: fixed; inset: 0; z-index: 140;          /* above the room and the intro, below the dock (150) */
@@ -167,9 +174,9 @@
 }
 @media (max-width:600px){
   #hint{ bottom: calc(76px + env(safe-area-inset-bottom)); }
-  #cta, #status{ bottom: calc(84px + env(safe-area-inset-bottom)); }
+  #status{ bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 
 @keyframes pulse{ 0%,100%{ opacity:.45; } 50%{ opacity:1; } }
 
-@media (prefers-reduced-motion: reduce){ #hint i{ animation:none; } #hero{ transition:none; } }
+@media (prefers-reduced-motion: reduce){ #hint i{ animation:none; } #hero{ transition:none; } #cta span{ animation:none; } }

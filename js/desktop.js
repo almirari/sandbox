@@ -48,6 +48,14 @@ const LINKEDIN = {
       by: 'Issued by The Ministry of Education, Culture, Research and Technology (MoECRT) · Oct 2025', note: 'Top 4 of 386 teams' },
     { title: '3rd Place of Presentation Event Formula SAE Japan 2024',
       by: 'Issued by Formula Society of Automotive Engineers · Sep 2024' },
+    { title: 'Top 10 Team at VWO UI 2023 UI/UX Competition',
+      by: 'Issued by University of Indonesia Vocational Student Executive Board · Nov 2023' },
+    { title: '3rd Place of Presentation Event Formula SAE Japan 2023',
+      by: 'Issued by Formula Society of Automotive Engineers · Sep 2023', note: 'Top 3 of 77 teams' },
+    { title: 'Most Innovative Paper at Youth Idea Competition NBRI 2023',
+      by: 'Issued by National Battery Research Institute · Aug 2023' },
+    { title: '1st Place of Overall Event of Formula Bharat Pi-EV',
+      by: 'Issued by Formula Bharat India · Jul 2023' },
   ],
   orgs: [
     { name: 'Himpunan Mahasiswa Teknik Computer (HMTC) ITS', role: 'Staff of External Affairs · Mar 2024 – Nov 2024' },
@@ -337,6 +345,7 @@ function openWin({ id, app, title, ico, w = 520, h = 380, body, init, dark, flus
 
   el.addEventListener('pointerdown', () => focus(id));
   bar.addEventListener('pointerdown', e => {
+    if (small || e.target.closest('button') || el.classList.contains('max')) return;
     if (e.target.closest('button') || el.classList.contains('max')) return;
     const r = el.getBoundingClientRect(), p = layer.getBoundingClientRect();
     const dx = e.clientX - r.left, dy = e.clientY - r.top;
@@ -486,31 +495,61 @@ function instagramPage() {
 }
 
 function paperPage() {
+  const P = C.PAPER;
+  const initials = n => n.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const short = n => {
+    const p = n.split(' ');
+    return p.slice(0, -1).map(w => w[0] + '.').join(' ') + ' ' + p[p.length - 1];
+  };
+  const names = P.authors.map(a => short(a.name));
+  const cite = `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}, “${P.title},” in ${P.venue}, 2025, doi: ${P.doi}.`;
+
   return `<div class="doc">
-    <small class="kicker">PUBLICATION</small>
-    <h2>${esc(C.PAPER.title)}</h2>
-    <p class="venue"><i>${esc(C.PAPER.venue)}</i></p>
+    <small class="kicker">${esc(P.type).toUpperCase()}</small>
+    <h2>${esc(P.title)}</h2>
+    <p class="p-meta"><span>${esc(P.date)}</span>
+      <span>DOI: <a href="${esc(P.link)}" target="_blank" rel="noopener">${esc(P.doi)}</a></span></p>
+    <p class="venue"><i>${esc(P.venue)}</i></p>
+
+    <div class="p-authors">${P.authors.map(a => `
+      <div class="p-au${a.me ? ' me' : ''}">
+        <span class="p-av">${esc(initials(a.name))}</span>
+        <div><b>${esc(a.name)}</b><small>${esc(a.org)}</small></div>
+      </div>`).join('')}</div>
+
+    <div class="p-chips">${P.highlights.map(([v, t]) =>
+      `<div><b>${esc(v)}</b><small>${esc(t)}</small></div>`).join('')}</div>
+
     <h3>Abstract</h3>
-    <p>${esc(C.PAPER.abs)}</p>
-    <a class="go" href="${esc(C.PAPER.link)}" target="_blank" rel="noopener">Read the paper ↗</a>
+    <p>${esc(P.abs)}</p>
+    <div class="p-kw">${P.keywords.map(k => `<em>${esc(k)}</em>`).join('')}</div>
+
+    <h3>Cite this paper</h3>
+    <p class="p-cite">${esc(cite)}</p>
+
+    <a class="go" href="${esc(P.link)}" target="_blank" rel="noopener">Read the paper ↗</a>
+    ${P.alt ? `<a class="go alt" href="${esc(P.alt.url)}" target="_blank" rel="noopener">${esc(P.alt.label)} ↗</a>` : ''}
   </div>`;
 }
 
 // ───────── app windows ─────────
 function openChrome() {
   const TABS = [
-    { title: 'LinkedIn',  ico: '💼', url: LINKS.linkedin,  render: linkedinPage,  theme: 'li-page' },
-    { title: 'GitHub',    ico: '🐙', url: LINKS.github,    render: githubPage,    theme: 'gh-page' },
-    { title: 'Instagram', ico: '📸', url: LINKS.instagram, render: instagramPage, theme: 'ig-page' },
-    { title: 'Paper',     ico: '📄', url: C.PAPER.link && C.PAPER.link !== '#' ? C.PAPER.link : 'scholar.google.com', render: paperPage },
+    { title: 'LinkedIn',  ico: '💼', img: 'tab-linkedin.png',  url: LINKS.linkedin,  render: linkedinPage,  theme: 'li-page' },
+    { title: 'GitHub',    ico: '🐙', img: 'tab-github.png',    url: LINKS.github,    render: githubPage,    theme: 'gh-page' },
+    { title: 'Instagram', ico: '📸', img: 'tab-instagram.png', url: LINKS.instagram, render: instagramPage, theme: 'ig-page' },
+    { title: 'Paper',     ico: '📄', img: 'tab-paper.png',     url: C.PAPER.link && C.PAPER.link !== '#' ? C.PAPER.link : 'scholar.google.com', render: paperPage },
   ];
+  const tico = t => t.img
+    ? `<img class="tico" src="textures/${t.img}" alt="" draggable="false" data-e="${t.ico}" onerror="this.outerHTML=this.dataset.e">`
+    : t.ico;
   openWin({
   id: 'chrome', title: 'Google Chrome', ico: '🌐',
   w: Math.min(980, innerWidth - 60),
   h: Math.min(640, innerHeight - 110),
   flush: true,
     body: `<div class="tabs">${TABS.map((t, i) =>
-            `<button data-i="${i}" class="${i ? '' : 'on'}">${t.ico} ${t.title}</button>`).join('')}</div>
+            `<button data-i="${i}" class="${i ? '' : 'on'}">${tico(t)} ${t.title}</button>`).join('')}</div>
            <div class="addr"><span></span></div>
            <div class="page"></div>`,
     init: el => {
@@ -523,7 +562,11 @@ function openChrome() {
         page.className = 'page ' + (t.theme || '');
         page.innerHTML = '<p class="note">Loading…</p>';
         const html = await t.render();
-        if (my === token) { page.innerHTML = html; page.scrollTop = 0; }   // ignore if user switched tabs meanwhile
+        if (my === token) {
+          page.innerHTML = html; page.scrollTop = 0;
+          const g = page.querySelector('.gh-graph');
+          if (g) g.scrollLeft = g.scrollWidth;   // graph starts at the newest weeks
+        }
       };
       el.querySelector('.tabs').addEventListener('click', e => {
         const b = e.target.closest('button');
