@@ -25,6 +25,7 @@ function wrapWords(el) {
 export function initIntro({ onEnter, onWait }) {
   const load = $('load'), hero = $('hero'), base = $('heroBase');
   const sceneA = $('sceneA'), sceneB = $('sceneB');
+  const bgB = $('bgB');
   const hint = $('hint'), status = $('status'), skip = $('skip'), cta = $('cta');
   const caption = sceneB.querySelector('.caption');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -106,9 +107,14 @@ export function initIntro({ onEnter, onWait }) {
     sceneA.style.visibility = b >= 1 ? 'hidden' : 'visible';
     if (caption) caption.style.opacity = range(p, 0.52, 0.6);
 
-    hint.style.opacity = 1 - range(p, 0, 0.04);
+    hint.style.opacity = 1 - range(p, 0.90, 0.96);
     skip.style.opacity = 1 - range(p, 0.9, 0.97);
     skip.style.pointerEvents = p > 0.95 ? 'none' : 'auto';
+
+    // B background: main.png goes from sharp to blurry as you scroll through the text
+    const blur = ease(range(p, 0.40, 0.70)) * 16;                 // 0 → 16px
+    bgB.style.filter = `blur(${blur.toFixed(1)}px)`;
+    bgB.style.transform = `scale(${(1 + blur * 0.006).toFixed(3)})`;   // slight zoom so blurred edges don't show through
 
     // B: line-by-line / word-by-word reveals
     beats.forEach((bt, i) => {

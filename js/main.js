@@ -1,15 +1,18 @@
 import { buildRoom } from './room.js';
-import { show, isOpen } from './ui.js';
 import { flappy } from './flappy.js';
 import * as C from './content.js';
 import { loadModels } from './models.js';
 import { initIntro } from './intro.js';
 import { initLoader } from './loader.js';
+import { show, isOpen, term } from './ui.js';
+import { openDesktop, isDesktopOpen } from './desktop.js';
+import { initDock } from './dock.js';
 
 const T = THREE;
 const $ = id => document.getElementById(id);
 const canvas = $('c');
 const tag = $('tag');
+initDock();
 
 // ───────────── loading screen (scroll intro lives in intro.js) ─────────────
 let loaded = false;
@@ -21,8 +24,33 @@ hud.style.opacity = 0;
 hud.style.transition = 'opacity 0.8s ease';
 hud.style.pointerEvents = 'none';
 
-const loader = initLoader({ src: 'textures/cat.webm' });
+const LOADER_SRC = 'textures/cat-small.mp4';
 const loadEl = $('load');
+
+// cat loader at page start
+let loader = initLoader({ src: LOADER_SRC });
+loader.show();
+
+// let the cat paint its first frame before the heavy room build starts
+const CAP = innerWidth < 600 ? 1800 : 3000;   // phones give up waiting sooner
+await Promise.race([loader.ready, new Promise(r => setTimeout(r, CAP))]);
+await new Promise(r => setTimeout(r, 300));
+
+const MIN_BOOT = 1200;   // ms the cat is always visible
+const MAX_BOOT = 5000;   // ms hard cap
+
+const titleReady = Promise.all(
+  [$('heroBase'), $('hero')].map(img => img.decode().catch(() => {}))
+);
+const minTime = loader.ready.then(() => new Promise(r => setTimeout(r, MIN_BOOT)));
+const maxTime = new Promise(r => setTimeout(r, MAX_BOOT));
+
+Promise.race([Promise.all([titleReady, minTime]), maxTime]).then(() => {
+  loader.hide(null, () => {
+    // fresh instance for the later "click before room is ready" wait
+    loader = initLoader({ src: LOADER_SRC });
+  });
+});
 
 // camera "flies in" from slightly behind/above and lands on its start position
 const fly = { on: false, t0: 0, dur: 2200, back: 2.2, up: 0.9 };
@@ -31,6 +59,7 @@ const intro = initIntro({
   onWait: () => loader.show(() => { loadEl.style.visibility = 'hidden'; }),
 
   onEnter: () => {
+    canvas.style.visibility = 'visible';
     loaded = true;
     hud.style.opacity = '';
     fly.on = true;
@@ -45,6 +74,7 @@ const intro = initIntro({
 const renderer = new T.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = T.PCFSoftShadowMap;
 
 const scene = new T.Scene();
 scene.background = new T.Color(0xffd9b0);
@@ -69,14 +99,26 @@ const on = (mesh, label, fn) => {
 };
 
 const { col, motes } = buildRoom(scene, on, {
-  about:    () => show(`<h2>About me</h2><p>${C.ABOUT}</p>`),
-  projects: () => show(`<h2>Projects</h2>${C.PROJECTS.map(p => `<p>• ${p}</p>`).join('')}`),
-  paper:    () => show(`<h2>${C.PAPER.title}</h2><p><i>${C.PAPER.venue}</i></p><p>${C.PAPER.abs}</p>
-                        <a class="btn" href="${C.PAPER.link}" target="_blank" rel="noopener">Read the paper</a>`),
-  contact:  () => show(`<h2>Find me</h2>${C.CONTACT.map(([n, u]) =>
-                        `<a class="btn" href="${u}" target="_blank" rel="noopener">${n}</a>`).join('')}`),
-  game:     () => show(`<h2>Games</h2><p>Click or press Space to flap.</p>
-                        <canvas id="g" width="320" height="400"></canvas>`, flappy($('g'))),
+  about: () => show(term('whoami',
+    `<fieldset><legend>About</legend><p>${C.ABOUT}</p></fieldset>`), null, 'about.txt'),
+
+  projects: () => show(term('ls .\\projects',
+    `<fieldset><legend>Projects</legend><dl>${C.PROJECTS.map(p => {
+      const [name, ...rest] = p.split(' — ');
+      return `<dt>${name}</dt><dd>${rest.join(' — ')}</dd>`;
+    }).join('')}</dl></fieldset>`), null, 'projects'),
+
+  paper: () => show(term('cat paper.md',
+    `<fieldset><legend>${C.PAPER.title}</legend>
+       <p><i>${C.PAPER.venue}</i></p><p>${C.PAPER.abs}</p>
+       <a class="btn" href="${C.PAPER.link}" target="_blank" rel="noopener">Read the paper</a>
+     </fieldset>`), null, 'paper.md'),
+
+  contact: () => show(term('start .\\links',
+    `<fieldset><legend>Find me</legend>${C.CONTACT.map(([n, u]) =>
+      `<a class="btn" href="${u}" target="_blank" rel="noopener">${n}</a>`).join('')}</fieldset>`), null, 'links'),
+
+  game: () => openDesktop(),
 });
 
 // ───────────── state (declared early: warmUp uses yaw / pitch) ─────────────
@@ -172,6 +214,36 @@ function stopWalking() {
   marker.visible = false;
 }
 
+// ───────────── subtle hover lift ─────────────
+const HOVER_SCALE = 1.03;
+let hovered = null, teased = null;
+const animated = new Set();
+
+const hoverTargetOf = thing => {
+  const t = thing && (thing.userData.hoverTarget || thing);
+  return t && t.isGroup ? t : null;   // only model holders; flat things like posters are skipped
+};
+
+function updateHover(dt) {
+  const active = hovered || teased;
+  if (active) animated.add(active);
+  animated.forEach(o => {
+    const goal = o === active ? HOVER_SCALE : 1;
+    const s = o.scale.x + (goal - o.scale.x) * (1 - Math.exp(-dt * 12));
+    o.scale.setScalar(s);
+    if (o !== active && Math.abs(s - 1) < 0.0005) { o.scale.setScalar(1); animated.delete(o); }
+  });
+}
+
+// one small pulse per clickable object, once, right after the fly-in lands
+function teaseClickables() {
+  const list = [...new Set(clickables.map(c => c.userData.hoverTarget || c))].filter(o => o.isGroup);
+  list.forEach((o, i) => setTimeout(() => {
+    teased = o;
+    setTimeout(() => { if (teased === o) teased = null; }, 450);
+  }, 400 + i * 350));
+}
+
 // ───────────── pointer input: look, hover, click, tap ─────────────
 canvas.addEventListener('pointerdown', e => {
   drag = { x: e.clientX, y: e.clientY, moved: 0 };
@@ -179,6 +251,7 @@ canvas.addEventListener('pointerdown', e => {
 
 addEventListener('pointermove', e => {
   if (drag) {
+    hovered = null;
     // dragging = looking around
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     drag.moved += Math.abs(dx) + Math.abs(dy);
@@ -186,9 +259,10 @@ addEventListener('pointermove', e => {
     pitch = Math.max(-1.2, Math.min(1.2, pitch - dy * 0.005));
     drag.x = e.clientX;
     drag.y = e.clientY;
-  } else if (loaded) {
+  } else if (loaded && !isDesktopOpen()) {
     // hovering = show label (desktop only)
     const thing = clickableAt(e);
+    hovered = hoverTargetOf(thing);
     canvas.style.cursor = thing ? 'pointer' : 'default';
     tag.style.display = thing ? 'block' : 'none';
     if (thing) tag.textContent = thing.userData.label;
@@ -198,7 +272,7 @@ addEventListener('pointermove', e => {
 addEventListener('pointerup', e => {
   const wasTap = drag && drag.moved < 6;
   drag = null;
-  if (!wasTap || !loaded || fly.on || isOpen()) return;
+  if (!wasTap || !loaded || fly.on || isOpen() || isDesktopOpen()) return;
 
   const thing = clickableAt(e);
   if (thing) thing.userData.fn(); // tapped furniture → open it
@@ -241,7 +315,7 @@ function tryMove({ dx, dz }) {
 }
 
 function updatePlayer(dt) {
-  if (!loaded || fly.on || isOpen()) return;
+  if (!loaded || fly.on || isOpen() || isDesktopOpen()) return;
 
   let move = keyboardMove(dt);
   if (move) stopWalking();            // pressing a key cancels tap-to-move
@@ -263,6 +337,7 @@ function loop(t) {
   lastTime = t;
 
   updatePlayer(dt);
+  updateHover(dt);
   motes.rotation.y += dt * 0.02;
   camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
@@ -276,7 +351,7 @@ function loop(t) {
     off = dir.multiplyScalar(-fly.back * d);              // back away from the view direction...
     off.y += fly.up * d;                                  // ...and slightly up
     camera.position.add(off);
-    if (k >= 1) fly.on = false;
+    if (k >= 1) { fly.on = false; teaseClickables(); }
   }
   if (loaded || needsFrame) { renderer.render(scene, camera); needsFrame = false; }
   if (off) camera.position.sub(off);

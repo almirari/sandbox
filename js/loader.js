@@ -2,15 +2,18 @@
 // show() starts it, hide() dissolves it. It waits until it has been visible for MIN_SHOW ms.
 const BG       = '#f3e6d0';   // paper
 const DOT      = '#3b2a20';   // ink
-const CELL     = 14;          // dot pitch in CSS px (desktop)
-const CELL_SM  = 10;          // dot pitch on narrow screens
-const FPS      = 30;
+const CELL     = 8;          // dot pitch in CSS px (desktop)
+const CELL_SM  = 6;          // dot pitch on narrow screens
+const FPS = 30;
+const FPS_SM = 24;
 const CONTRAST = 1.25;        // >1 = punchier cat
-const BRIGHT   = 0.0;         // -1..1
+const BRIGHT   = 0.50;         // -1..1
 const INVERT   = false;       // true if the cat is LIGHT on a dark background (dots would be missing/reversed)
 const MIN_SHOW = 600;         // ms, avoids a flash if the room is almost ready
 const FADE_IN  = 250;         // ms, matches the CSS transition
 const OUT_MS   = 800;         // ms, dots shrinking away
+const CAT_SCALE = 0.45;   // 1 = fills the screen, 0.45 = cat takes under half
+const CAT_SCALE_SM = 0.9;   // on phones the cat can use almost the full width
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 
@@ -38,6 +41,11 @@ export function initLoader({ src = 'textures/cat.mp4' } = {}) {
     console.error('[loader] cat video failed, code', video.error && video.error.code, video.currentSrc));
   video.addEventListener('loadeddata', () =>
     console.log('[loader] cat ready', video.videoWidth + 'x' + video.videoHeight));
+  // resolves when the first frame can be drawn (or on error, so boot never hangs)
+  const ready = new Promise(r => {
+    video.addEventListener('loadeddata', r, { once: true });
+    video.addEventListener('error', r, { once: true });
+  });
   video.src = src;
   video.load();
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) video.play().catch(() => {});
@@ -51,7 +59,7 @@ export function initLoader({ src = 'textures/cat.mp4' } = {}) {
   let active = false, doneCb = null;
 
   function layout() {
-    dpr = Math.min(devicePixelRatio || 1, 1.5);
+    dpr = Math.min(devicePixelRatio || 1, innerWidth < 600 ? 1 : 1.5);
     W = innerWidth; H = innerHeight;
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
@@ -67,10 +75,27 @@ export function initLoader({ src = 'textures/cat.mp4' } = {}) {
     const vw = video.videoWidth, vh = video.videoHeight;
     if (!vw || video.readyState < 2) return null;
     try {
-      const s = Math.max(cols / vw, rows / vh);
-      const sw = cols / s, sh = rows / s;
-      sctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, cols, rows);
-      return sctx.getImageData(0, 0, cols, rows).data;
+      // contain-fit the whole video inside a centered box (nothing gets cropped)
+      const scale = W < 600 ? CAT_SCALE_SM : CAT_SCALE;
+      const k = Math.min((cols * scale) / vw, (rows * scale) / vh);
+      const dw = Math.max(1, Math.round(vw * k)), dh = Math.max(1, Math.round(vh * k));
+      const dx = Math.floor((cols - dw) / 2), dy = Math.floor((rows - dh) / 2);
+
+      sctx.clearRect(0, 0, cols, rows);
+      sctx.drawImage(video, 0, 0, vw, vh, dx, dy, dw, dh);
+      const data = sctx.getImageData(0, 0, cols, rows).data;
+
+      // paint everything outside the video with the video's own background color
+      const kk = (dy * cols + dx) * 4;
+      const br = data[kk], bg = data[kk + 1], bb = data[kk + 2];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (r >= dy && r < dy + dh && c >= dx && c < dx + dw) continue;
+          const i = (r * cols + c) * 4;
+          data[i] = br; data[i + 1] = bg; data[i + 2] = bb; data[i + 3] = 255;
+        }
+      }
+      return data;
     } catch (e) {
       console.warn('[loader] sample failed', e);
       return null;
@@ -108,7 +133,7 @@ export function initLoader({ src = 'textures/cat.mp4' } = {}) {
 
   function frame(now) {
     raf = requestAnimationFrame(frame);
-    if (now - last < 1000 / FPS) return;
+    if (now - last < 1000 / (W < 600 ? FPS_SM : FPS)) return;
     last = now;
     if (outStart) outT = clamp((now - outStart) / OUT_MS);
     draw();
@@ -126,6 +151,7 @@ export function initLoader({ src = 'textures/cat.mp4' } = {}) {
   }
 
   return {
+    ready,
     get active() { return active; },
 
     // onCovered fires once the overlay fully hides what is underneath

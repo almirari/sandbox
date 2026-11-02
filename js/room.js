@@ -661,6 +661,7 @@ export function buildRoom(scene, on, actions) {
         s.mesh.rotation.order = 'YXZ';
         scene.add(s.mesh);
         on(s.mesh, 'The PC — play a game', actions.game);
+        s.mesh.userData.hoverTarget = pc;
         apply(s);
       });
 
@@ -888,7 +889,8 @@ export function buildRoom(scene, on, actions) {
           if (MOUNT === 'top') o.rotation.set(-Math.PI / 2, NOSE_BACK ? Math.PI : 0, 0);
           else o.rotation.set(NOSE_BACK ? Math.PI / 2 : -Math.PI / 2, Math.PI / 2, 0, 'YXZ');
         },
-        onLoad: ({ holder }) => {
+        onLoad: ({ obj, holder }) => {
+          obj.traverse(o => { if (o.isMesh) o.castShadow = false; });
           // push it flush against the front wall, facing the room
           holder.updateMatrixWorld(true);
           const cb = new T.Box3().setFromObject(holder);
@@ -1141,6 +1143,7 @@ export function buildRoom(scene, on, actions) {
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.bias = -0.0004;      // fixes the staircase patterns on furniture
   sun.shadow.normalBias = 0.04;
+  sun.shadow.radius = 4;
   Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, far: 25 });
 
   // gentle fill light from the ceiling

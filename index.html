@@ -9,7 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,800;0,9..144,900;1,9..144,500&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="loading.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="loading.css">
+<link rel="stylesheet" href="desktop.css">
+<link rel="stylesheet" href="extras.css">
 </head><body>
 <canvas id="c"></canvas><div id="tag"></div>
 <div id="hud">WASD / arrows to walk · drag to look · click things to explore</div>
@@ -37,10 +40,9 @@
     <div class="shade" aria-hidden="true"></div>
 
     <div class="beat intro">
-      <span class="ln"><b data-fact="Sepuluh Nopember Institute of Technology · Informatics Engineering · 2022–2026">Informatics</b> at ITS, Surabaya.</span>
-      <span class="ln">Teaches <b data-fact="A vision model squeezed to 2.23M parameters, still 95.64% accurate. No GPU needed.">tiny AI</b> to run where big GPUs can’t.</span>
-      <span class="ln">Breaks <b data-fact="At Accenture: 15+ critical defects caught before production, on a telco with 50M+ subscribers.">APIs</b> on purpose, pitches <b data-fact="Top 3 in the presentation event at Formula SAE Japan, in both 2023 and 2024.">race cars</b>,</span>
-      <span class="ln">and is, duh, a <b data-fact="There’s a pennant on the corkboard. It’s official.">museum nerd</b>.</span>
+      <span class="ln">Fresh graduate of <b data-fact="Institut Teknologi Sepuluh Nopember (ITS) · 3.61/4.00 GPA">Informatics Engineering</b> with a strong foundation in <b data-fact="Python, SQL, Scikit-learn, TensorFlow, PyTorch.">machine learning and analytics</b>.</span>
+      <span class="ln">As a data-driven problem solver, I specialize in translating <b data-fact="Built a repayment behavior analysis pipeline improving collections efficiency by 12% at Bank Syariah Indonesia.">technical analysis</b> into actionable business decisions.</span>
+      <span class="ln">My experience spans optimizing <a href="https://doi.org/10.1109/ICTS67612.2025.11369518" target="_blank" rel="noopener" style="color: inherit;"></a> <b data-fact="Published a framework compressing a vision model to 2.23M parameters maintaining 95.64% accuracy.">AI models for edge deployment</b> to ensuring production reliability at industry leaders like <b data-fact="Caught 15+ critical pre-production defects via systematic API contract testing.">Accenture</b>.</span>
       <p class="fact">(hover over the bold stuff)</p>
     </div>
     
@@ -67,7 +69,20 @@
   </a>
 </nav>
 
-<div id="modal"><div id="box"><button id="x" aria-label="Close">×</button><div id="mc"></div></div></div>
+<div id="modal"><div id="box" role="dialog" aria-modal="true">
+  <div id="bar">
+    <div id="tab">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="m4.5 6 2.5 2-2.5 2M8.5 10.5h3"/></svg>
+      <span id="tabTitle">pwsh</span>
+    </div>
+    <div id="wc">
+      <span aria-hidden="true">–</span>
+      <span aria-hidden="true">▢</span>
+      <button id="x" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <div id="mc"></div>
+</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script type="module" src="js/main.js"></script></body></html>
