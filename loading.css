@@ -43,13 +43,12 @@
 }
 
 /* ── scene B: intro ── */
-#sceneB{ opacity:0; visibility:hidden; }
+#sceneB{ opacity:0; visibility:hidden; overflow:hidden; }
 #bgB{
   position:absolute; inset:-8%;
   background:url(main.png) center / cover no-repeat;
   will-change:filter, transform;
 }
-#sceneB{ overflow:hidden; }
 @media (orientation:portrait){
   #bgB{ background-image:url(main-portrait.png); }
 }
@@ -84,7 +83,7 @@
   font-family:'Inter', system-ui, sans-serif; font-weight:300; text-transform:none;
   font-size:clamp(20px, 2.6vw, 36px); line-height:1.22; letter-spacing:-.01em;
   text-align:center;
-  color:#fff;                                  /* add this */
+  color:#fff;
   text-shadow:0 2px 14px rgba(0,0,0,.45);
 }
 
@@ -111,10 +110,11 @@
   position:absolute; bottom:max(24px, 4vh); left:50%; translate:-50% 0; z-index:3;
   display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none;
   font:400 12px/1 'Inter', system-ui, sans-serif;
-  letter-spacing:.2em; text-transform:uppercase; text-shadow:0 1px 6px rgba(0,0,0,.6);
+  letter-spacing:.2em; text-transform:uppercase;
+  text-shadow:0 1px 6px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.45);
   color:#fff;
 }
-#hint i{ width:2px; height:28px; background:#fff; transform-origin:top; animation:drip 1.6s ease-in-out infinite; color: #fff;}
+#hint i{ width:2px; height:28px; background:#fff; transform-origin:top; animation:drip 1.6s ease-in-out infinite; box-shadow:0 0 6px rgba(0,0,0,.5); }
 @keyframes drip{ 0%{ scale:1 0; opacity:0; } 40%{ scale:1 1; opacity:1; } 100%{ scale:1 1; opacity:0; } }
 #skip{
   all:unset; position:absolute; top:max(18px, 3vh); right:20px; z-index:3; cursor:pointer;
@@ -125,7 +125,7 @@
 }
 #skip:hover{ background:rgba(0,0,0,.4); }
 
-/* "click anywhere to continue": centered dark pill, shown once the cards are gone */
+/* "click anywhere to continue": centered, shown once the cards are gone */
 #cta{
   position:absolute; left:50%; top:50%; bottom:auto; translate:-50% -50%; z-index:3;
   margin:0; opacity:0; pointer-events:none; white-space:nowrap;
@@ -142,6 +142,7 @@
   50%{ box-shadow:0 4px 18px rgba(0,0,0,.35), 0 0 0 5px rgba(255,221,58,.28); }
 }
 
+/* ── halftone cat loader ── */
 #halftone{
   position: fixed; inset: 0; z-index: 140;          /* above the room and the intro, below the dock (150) */
   background: var(--ht-bg, #f3e6d0);
@@ -166,17 +167,16 @@
 @keyframes ht-slide{ from{ transform: translateX(-100%); } to{ transform: translateX(333%); } }
 #halftone.out .ht-text, #halftone.out .ht-bar{ opacity: 0; transition: opacity .2s; }
 
-#hint{ text-shadow:0 1px 6px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.45); }
-#hint i{ box-shadow:0 0 6px rgba(0,0,0,.5); }
+@keyframes pulse{ 0%,100%{ opacity:.45; } 50%{ opacity:1; } }
 
+/* ── phones ── */
 @media (max-width:600px){
   #halftone .ht-text{ bottom: calc(76px + env(safe-area-inset-bottom)); }   /* sits above the 38px dock */
-}
-@media (max-width:600px){
-  #hint{ bottom: calc(76px + env(safe-area-inset-bottom)); }
+
+  /* hint rendah + garisnya pendek, supaya tidak menutupi kartu timeline / achievements */
+  #hint{ bottom: calc(66px + env(safe-area-inset-bottom)); gap:4px; }
+  #hint i{ height:18px; }
   #status{ bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
-
-@keyframes pulse{ 0%,100%{ opacity:.45; } 50%{ opacity:1; } }
 
 @media (prefers-reduced-motion: reduce){ #hint i{ animation:none; } #hero{ transition:none; } #cta span{ animation:none; } }

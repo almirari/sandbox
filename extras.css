@@ -47,18 +47,22 @@
 .ach-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .ach-card{
   display:flex; gap:12px; padding:14px 16px; border-radius:14px;
-  background:rgba(16,30,150,.45); border:1px solid rgba(85,201,242,.38);
-  backdrop-filter:blur(6px); will-change:opacity, transform; text-shadow:none;
+  background:rgba(255,255,255,.30);
+  border:1px solid rgba(255,255,255,.65);
+  backdrop-filter:blur(14px) saturate(1.2);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);
+  box-shadow:0 6px 20px rgba(10,18,80,.18);
+  will-change:opacity, transform; text-shadow:none; color:#16204f;
 }
 .ach-ico{
   position:relative; flex:none; width:44px; height:44px; display:grid; place-items:center; overflow:hidden;
-  border-radius:10px; background:#fff; color:#101e96; text-shadow:none;
+  border-radius:10px; background:rgba(255,255,255,.85); color:#101e96; text-shadow:none;
   font:800 18px/1 'Inter', system-ui, sans-serif;
 }
-.ach-ico img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:5px; background:#fff; }
-.ach-card h3{ margin:0; font-size:15px; font-weight:700; line-height:1.25; }
-.ach-card small{ display:block; margin-top:3px; font-size:12px; color:#cdeffc; opacity:.85; }
-.ach-card p{ margin:6px 0 0; font-size:13px; line-height:1.4; color:#ffdd3a; }
+.ach-ico img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:5px; background:rgba(255,255,255,.85); }
+.ach-card h3{ margin:0; font-size:15px; font-weight:700; line-height:1.25; color:#0a1470; }
+.ach-card small{ display:block; margin-top:3px; font-size:12px; font-weight:600; color:#1f2a5c; opacity:1; }
+.ach-card p{ margin:6px 0 0; font-size:13px; line-height:1.4; font-weight:700; color:#8a5a00; }
 .ach-links{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:22px; will-change:opacity, transform; }
 .pill{
   padding:9px 18px; border-radius:99px; text-decoration:none; text-shadow:none;
@@ -89,8 +93,8 @@
 
 @media (max-width:640px){
   .panel{
-    top:calc(50% + 18px); width:92vw;
-    height:calc(100vh - 200px); height:calc(100dvh - 200px);
+    top:calc(50% + 6px); width:92vw;
+    height:calc(100vh - 270px); height:calc(100dvh - 270px);
   }
   #steps{ top:calc(max(18px, 3vh) + 42px); }
   .pnl-h{ margin-bottom:10px; }
