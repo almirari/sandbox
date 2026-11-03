@@ -142,3 +142,32 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #f3e6d0; fon
     max-width: calc(100vw - 32px);
   }
 }
+
+/* whiteboard popup */
+#mc .bt { display: flex; gap: 6px; margin-bottom: 14px; }
+#mc .bt button { all: unset; cursor: pointer; padding: 5px 14px; border: 1px solid var(--line); border-radius: 99px; font-size: 12px; font-weight: 700; }
+#mc .bt button:hover { background: rgba(255,255,255,.08); }
+#mc .bt button.on { background: var(--yellow); border-color: var(--yellow); color: var(--navy); }
+
+.pjs { display: grid; gap: 12px; }
+.pj { display: flex; gap: 14px; padding: 12px; border: 1px solid var(--line, #d5def3); border-radius: 8px; }
+.pj-img { flex: none; width: 96px; height: 96px; object-fit: cover; border-radius: 6px; }
+.pj-body { min-width: 0; }
+.pj h4 { margin: 0 0 4px; font-size: 15px; color: var(--yellow, #101e96); }
+.pj p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; }
+.pj-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.pj-tags em { font-style: normal; font-size: 11px; padding: 2px 9px; border: 1px solid var(--line, #d5def3); border-radius: 99px; opacity: .85; }
+.pj-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.pj-links a { font-size: 12px; font-weight: 700; padding: 4px 12px; border: 1px solid var(--line, #d5def3); border-radius: 4px; color: inherit; text-decoration: none; }
+.pj-links a:hover { background: var(--yellow, #ffdd3a); color: var(--navy, #101e96); }
+
+.pp small { opacity: .7; letter-spacing: .08em; }
+.pp h4 { margin: 4px 0; font-size: 16px; color: var(--yellow, #101e96); line-height: 1.3; }
+.pp-venue { margin: 0 0 6px; font-size: 12px; opacity: .75; }
+.pp-au { font-size: 13px; }
+.pp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.pp-chips div { padding: 8px 12px; border: 1px solid var(--line, #d5def3); border-radius: 8px; }
+.pp-chips b { display: block; font-size: 16px; }
+.pp-chips small { font-size: 11px; letter-spacing: 0; }
+
+@media (max-width: 600px) { .pj { flex-direction: column; } .pj-img { width: 100%; height: 140px; } }

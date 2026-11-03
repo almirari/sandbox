@@ -1,5 +1,6 @@
 import { flappy } from './flappy.js';
 import * as C from './content.js';
+import { projectCards } from './projects.js';
 
 // ───────── edit me ─────────
 const LINKS = {
@@ -15,7 +16,6 @@ const PHOTOS      = ['textures/photo1.jpg', 'textures/photo2.jpg', 'textures/pho
 const PINNED      = ['chrome', 'files', 'flappy', 'notes'];   // taskbar icons
 
 // ───────── LinkedIn tab (edit by hand when your profile changes) ─────────
-// logo files are optional: put them in textures/ and a letter tile shows until then
 const LINKEDIN = {
   name: 'Almira Raisa Izzatina', pronouns: 'She/Her',
   headline: 'Final Year Student @ IF ITS | Ex-Intern @ Accenture',
@@ -23,7 +23,7 @@ const LINKEDIN = {
   connections: '500+ connections', followers: '596 followers',
   photo: 'textures/me.jpeg', banner: 'textures/li-banner.jpeg',
   posts: [
-    { when: '9mo', likes: 106, comments: 6, img: 'textures/li-post1.jpeg', slides:7,
+    { when: '9mo', likes: 106, comments: 6, img: 'textures/li-post1.jpeg', slides: 7,
       text: 'It has been a couple of days since I returned from the Grow Beyond Yourself study trip in Singapore and I am honestly still buzzing!…' },
     { when: '11mo', likes: 58, comments: 4, img: 'textures/li-post2.jpeg', slides: 3,
       text: 'Looking back on what a fantastic experience it was presenting at the 15th International Conference on Information, Communication Technology and…' },
@@ -129,7 +129,7 @@ const ic = a => a.img
   : a.ico;
 
 // ───────── state ─────────
-let root, layer, clockTimer;
+let root, layer, clockTimer, hintTimer;
 let z = 10;
 const wins = new Map();   // id → { el, stop }
 const q = s => root.querySelector(s);
@@ -137,6 +137,18 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export const isDesktopOpen = () => !!root && root.classList.contains('on');
+
+// "Press Esc" tip, fades out after a few seconds
+function showHint() {
+  const el = q('.d-hint');
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  el.innerHTML = coarse
+    ? 'Tap <b>← Back to room</b> to leave the computer'
+    : 'Press <kbd>Esc</kbd> to go back to the room';
+  el.classList.add('show');
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => el.classList.remove('show'), 4500);
+}
 
 export function openDesktop() {
   if (isDesktopOpen()) return;
@@ -146,6 +158,7 @@ export function openDesktop() {
   clockTimer = setInterval(tick, 1000);
   root.classList.add('on');
   document.body.classList.add('desk-open');
+  showHint();
 }
 
 function closeDesktop() {
@@ -154,6 +167,8 @@ function closeDesktop() {
   root.classList.remove('on');
   document.body.classList.remove('desk-open');
   clearInterval(clockTimer);
+  clearTimeout(hintTimer);
+  q('.d-hint').classList.remove('show');
 }
 
 // ───────── build the desktop ─────────
@@ -163,6 +178,9 @@ function build() {
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-label', 'Desktop');
   root.innerHTML = `
+  <button class="d-exit" data-off aria-label="Leave the computer">← Back to room <kbd>Esc</kbd></button>
+  <div class="d-hint" role="status"></div>
+
   <div class="d-main">
     <div class="d-left">
       <div class="clock"><div class="date" id="dDate"></div><div class="time" id="dTime"></div></div>
@@ -212,7 +230,8 @@ function build() {
         return `<button class="tb-app" data-app="${id}" aria-label="${a.name}">${ic(a)}</button>`;
       }).join('')}
     </div>
-    <div class="tb-r"><span class="tray">⌃ 📶 🔊 🔋</span><span class="dt"><b id="tTime"></b><br><small id="tDate"></small></span></div>
+    <div class="tb-r"><span class="tray">⌃ 📶 🔊 🔋</span><span class="dt"><b id="tTime"></b><br><small id="tDate"></small></span>
+      <button class="tb-off" data-off aria-label="Shut down" title="Shut down">⏻</button></div>
   </footer>`;
   document.body.appendChild(root);
   layer = q('#dwin');
@@ -346,7 +365,6 @@ function openWin({ id, app, title, ico, w = 520, h = 380, body, init, dark, flus
   el.addEventListener('pointerdown', () => focus(id));
   bar.addEventListener('pointerdown', e => {
     if (small || e.target.closest('button') || el.classList.contains('max')) return;
-    if (e.target.closest('button') || el.classList.contains('max')) return;
     const r = el.getBoundingClientRect(), p = layer.getBoundingClientRect();
     const dx = e.clientX - r.left, dy = e.clientY - r.top;
     bar.setPointerCapture(e.pointerId);
@@ -374,7 +392,7 @@ function linkedinPage() {
 
   const posts = `
     <div class="li-tabs"><i class="on">Posts</i><i>Comments</i><i>Images</i></div>
-    <div class="li-posts">${L.posts.map((p, n) => `
+    <div class="li-posts">${L.posts.map(p => `
       <article class="li-post">
         <div class="li-who"><div class="av sm" ${cover(L.photo)}></div>
           <div><b>${esc(L.name)} <em>· You</em></b><small>${esc(L.headline)}<br>${esc(p.when)} · Edited</small></div></div>
@@ -544,10 +562,10 @@ function openChrome() {
     ? `<img class="tico" src="textures/${t.img}" alt="" draggable="false" data-e="${t.ico}" onerror="this.outerHTML=this.dataset.e">`
     : t.ico;
   openWin({
-  id: 'chrome', title: 'Google Chrome', ico: '🌐',
-  w: Math.min(980, innerWidth - 60),
-  h: Math.min(640, innerHeight - 110),
-  flush: true,
+    id: 'chrome', title: 'Google Chrome', ico: '🌐',
+    w: Math.min(980, innerWidth - 60),
+    h: Math.min(640, innerHeight - 110),
+    flush: true,
     body: `<div class="tabs">${TABS.map((t, i) =>
             `<button data-i="${i}" class="${i ? '' : 'on'}">${tico(t)} ${t.title}</button>`).join('')}</div>
            <div class="addr"><span></span></div>
@@ -586,15 +604,11 @@ function openFlappy() {
 }
 
 function openFiles() {
-  const rows = C.PROJECTS.map(p => {
-    const [name, ...rest] = p.split(' — ');
-    return `<li><span>📁</span><div><b>${name}</b><small>${rest.join(' — ')}</small></div></li>`;
-  }).join('');
-  openWin({ id: 'files', title: 'Projects', ico: '📁', w: 480, h: 340, body: `<ul class="files">${rows}</ul>` });
+  openWin({ id: 'files', title: 'Projects', ico: '📁', w: 640, h: 480, body: projectCards() });
 }
 
 function openNotes() {
-  openWin({ id: 'notes', title: 'About.txt', ico: '📝', w: 460, h: 320, body: `<p>${C.ABOUT}</p>` });
+  openWin({ id: 'notes', title: 'About.txt', ico: '📝', w: 460, h: 320, body: `<p>${esc(C.ABOUT)}</p>` });
 }
 
 function openTerm() {

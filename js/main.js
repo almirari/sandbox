@@ -7,6 +7,7 @@ import { initLoader } from './loader.js';
 import { show, isOpen, term } from './ui.js';
 import { openDesktop, isDesktopOpen } from './desktop.js';
 import { initDock } from './dock.js';
+import { projectCards, paperBrief } from './projects.js';
 
 const T = THREE;
 const $ = id => document.getElementById(id);
@@ -103,21 +104,21 @@ const { col, motes } = buildRoom(scene, on, {
   about: () => show(term('whoami',
     `<fieldset><legend>About</legend><p>${C.ABOUT}</p></fieldset>`), null, 'about.txt'),
 
-  projects: () => show(term('ls .\\projects',
-    `<fieldset><legend>Projects</legend><dl>${C.PROJECTS.map(p => {
-      const [name, ...rest] = p.split(' — ');
-      return `<dt>${name}</dt><dd>${rest.join(' — ')}</dd>`;
-    }).join('')}</dl></fieldset>`), null, 'projects'),
-
-  paper: () => show(term('cat paper.md',
-    `<fieldset><legend>${C.PAPER.title}</legend>
-       <p><i>${C.PAPER.venue}</i></p><p>${C.PAPER.abs}</p>
-       <a class="btn" href="${C.PAPER.link}" target="_blank" rel="noopener">Read the paper</a>
-     </fieldset>`), null, 'paper.md'),
-
-  contact: () => show(term('start .\\links',
-    `<fieldset><legend>Find me</legend>${C.CONTACT.map(([n, u]) =>
-      `<a class="btn" href="${u}" target="_blank" rel="noopener">${n}</a>`).join('')}</fieldset>`), null, 'links'),
+  board: () => show(term('', `
+    <div class="bt"><button data-t="p" class="on">Projects</button><button data-t="r">Paper</button></div>
+    <div class="bp">${projectCards()}</div>`),
+    () => {
+      const mc = document.getElementById('mc');
+      const onClick = e => {
+        const b = e.target.closest('.bt button');
+        if (!b) return;
+        mc.querySelectorAll('.bt button').forEach(x => x.classList.toggle('on', x === b));
+        mc.querySelector('.bp').innerHTML = b.dataset.t === 'p' ? projectCards() : paperBrief();
+        mc.scrollTop = 0;
+      };
+      mc.addEventListener('click', onClick);
+      return () => mc.removeEventListener('click', onClick);
+    }, 'whiteboard.png'),
 
   game: () => openDesktop(),
 });
@@ -219,26 +220,32 @@ function stopWalking() {
 const HOVER_SCALE = 1.03;
 let hovered = null, teased = null;
 const animated = new Set();
+const base = new WeakMap();   // skala asli tiap objek
 
 const hoverTargetOf = thing => {
   const t = thing && (thing.userData.hoverTarget || thing);
-  return t && t.isGroup ? t : null;   // only model holders; flat things like posters are skipped
+  return t && (t.isGroup || t.isMesh) ? t : null;   // model dan papan datar
 };
 
 function updateHover(dt) {
   const active = hovered || teased;
-  if (active) animated.add(active);
+  if (active) {
+    if (!base.has(active)) base.set(active, active.scale.clone());
+    animated.add(active);
+  }
   animated.forEach(o => {
+    const b = base.get(o);
     const goal = o === active ? HOVER_SCALE : 1;
-    const s = o.scale.x + (goal - o.scale.x) * (1 - Math.exp(-dt * 12));
-    o.scale.setScalar(s);
-    if (o !== active && Math.abs(s - 1) < 0.0005) { o.scale.setScalar(1); animated.delete(o); }
+    const cur = o.scale.y / b.y;                       // pakai Y: X bisa berubah saat tekstur dimuat
+    const s = cur + (goal - cur) * (1 - Math.exp(-dt * 12));
+    o.scale.set(b.x * s, b.y * s, b.z * s);
+    if (o !== active && Math.abs(s - 1) < 0.0005) { o.scale.copy(b); animated.delete(o); }
   });
 }
 
 // one small pulse per clickable object, once, right after the fly-in lands
 function teaseClickables() {
-  const list = [...new Set(clickables.map(c => c.userData.hoverTarget || c))].filter(o => o.isGroup);
+  const list = [...new Set(clickables.map(c => c.userData.hoverTarget || c))].filter(o => o.isGroup || o.isMesh);
   list.forEach((o, i) => setTimeout(() => {
     teased = o;
     setTimeout(() => { if (teased === o) teased = null; }, 450);

@@ -1081,14 +1081,21 @@ export function buildRoom(scene, on, actions) {
   booknook.material.alphaTest = 0.05;   // skips fully clear pixels, avoids dark fringes
   booknook.material.needsUpdate = true;
 
-  // polaroid grid over the bed (more saturated so they read as photos)
-  const TINTS = [['#ff9eb5', '#ffc27a'], ['#8cc8f0', '#c6e88f'], ['#b79cf0', '#ff9ec9'], ['#7fd1a5', '#ffe27a']];
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 5; c++) {
-      const i = r * 5 + c;
-      polaroid(L + GAP, 1.45 + r * 0.38, bedZ - 0.76 + c * 0.38, Math.PI / 2, ((i * 37) % 10 - 5) * 0.012, TINTS[i % 4], i);
-    }
-  }
+  // ═════════ whiteboard over the bed (projects + paper) ═════════
+  const BOARD_H = 1.3;     // height in meters (width follows the image)
+  const BOARD_Y = 1.85;    // height of the board's middle
+
+  const projBoardTex = new T.TextureLoader().load('textures/whiteboard.png', tex => {
+    projBoard.scale.x = BOARD_H * tex.image.width / tex.image.height;
+  });
+  if (T.SRGBColorSpace) projBoardTex.colorSpace = T.SRGBColorSpace;
+  projBoardTex.anisotropy = 8;
+
+  const projBoard = picture(1, BOARD_H, projBoardTex, L + GAP, BOARD_Y, bedZ, Math.PI / 2);
+  projBoard.material.transparent = true;
+  projBoard.material.alphaTest = 0.05;
+  projBoard.material.needsUpdate = true;
+  on(projBoard, 'Whiteboard: projects & paper', actions.board);
 
   // reading corner (back-left, under the windows): bean bag turned toward the spawn point, books, mug
   const BEAN_X = -1.3, BEAN_Z = -1.7;

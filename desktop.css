@@ -4,6 +4,7 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
 #desktop {
   --ink:#16204f; --yellow:#ffdd3a; --sky:#55c9f2; --blue:#4f77ff; --navy:#101e96;
   position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; overflow: hidden;
+  height: 100vh; height: 100dvh;
   color: var(--ink); font: 14px/1.4 'Inter', system-ui, sans-serif;
   background:
     radial-gradient(45% 55% at 42% 58%, #fbe8a6 0%, rgba(251,232,166,0) 72%),
@@ -11,10 +12,34 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
   visibility: hidden; opacity: 0; transform: scale(1.03);
   transition: opacity .25s, transform .25s, visibility 0s .25s;
 }
-#desktop { height: 100vh; height: 100dvh; }
 #desktop.on { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
 #desktop [hidden] { display: none !important; }
 #desktop button { font: inherit; color: inherit; }
+
+#desktop kbd {
+  font: 700 11px/1 'Inter', system-ui, sans-serif;
+  padding: 2px 6px; margin-left: 4px; border-radius: 5px;
+  border: 1px solid currentColor; opacity: .75;
+}
+
+/* ── exit button + Esc hint ── */
+#desktop .d-exit {
+  position: absolute; top: 14px; right: 16px; z-index: 30;
+  padding: 8px 14px; border-radius: 99px; cursor: pointer;
+  background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.7);
+  backdrop-filter: blur(10px); font-size: 12px; font-weight: 700; color: var(--navy);
+}
+#desktop .d-exit:hover, #desktop .d-exit:focus-visible { background: var(--yellow); outline: none; }
+
+#desktop .d-hint {
+  position: absolute; left: 50%; bottom: 64px; translate: -50% 8px; z-index: 45;
+  padding: 9px 16px; border-radius: 99px; white-space: nowrap;
+  background: rgba(16,30,150,.88); color: #fff; font-size: 13px;
+  box-shadow: 0 8px 24px rgba(10,20,80,.3);
+  opacity: 0; pointer-events: none; transition: opacity .3s, translate .3s;
+}
+#desktop .d-hint.show { opacity: 1; translate: -50% 0; }
+#desktop .d-hint kbd { border-color: rgba(255,255,255,.6); opacity: 1; }
 
 /* ── layout ── */
 #desktop .d-main { flex: 1; min-height: 0; display: flex; gap: 20px; padding: 28px 28px 12px; }
@@ -76,6 +101,13 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
 #desktop .ic .tile { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; font-size: 26px;
                      background: rgba(255,255,255,.75); box-shadow: 0 2px 8px rgba(20,30,90,.15); }
 
+/* ── real icons ── */
+#desktop .ico { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
+#desktop .ic .tile { background: none; box-shadow: none; }          /* delete this line if your icons are flat with no background */
+#desktop .ic .tile .ico { width: 52px; height: 52px; }
+#desktop .tb-app .ico { width: 26px; height: 26px; }
+#desktop .wt .ico { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; }
+
 /* ── taskbar ── */
 #desktop .tb {
   position: relative; z-index: 40; flex: none; height: 48px; display: grid; grid-template-columns: 1fr auto 1fr;
@@ -94,6 +126,11 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
 #desktop .search { width: 150px; margin: 0 6px; padding: 6px 12px; border-radius: 99px; font-size: 12px;
                    background: rgba(255,255,255,.7); opacity: .85; }
 #desktop .tb-r { justify-self: end; display: flex; align-items: center; gap: 14px; font-size: 12px; text-align: right; line-height: 1.2; }
+#desktop .tb-off {
+  all: unset; width: 34px; height: 34px; display: grid; place-items: center;
+  border-radius: 8px; cursor: pointer; font-size: 16px;
+}
+#desktop .tb-off:hover { background: var(--yellow); color: var(--navy); }
 
 /* ── start menu ── */
 #desktop #startmenu {
@@ -132,6 +169,7 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
 #desktop .go { display: inline-block; margin: 14px 0 8px; padding: 9px 18px; border-radius: 99px;
                background: var(--yellow); color: var(--navy); font-weight: 700; text-decoration: none; }
 #desktop .go:hover { filter: brightness(1.05); }
+#desktop .go.alt { margin-left: 8px; background: transparent; border: 1.5px solid var(--navy); }
 
 /* ── chrome shell ── */
 #desktop .tabs { display: flex; gap: 4px; padding: 6px 8px 0; background: #d5def3; }
@@ -159,18 +197,21 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
 #desktop .photos div { aspect-ratio: 1; border-radius: 8px;
                        background: var(--img) center/cover, linear-gradient(135deg, var(--yellow), var(--sky)); }
 
-/* ── real icons ── */
-#desktop .ico { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
-#desktop .ic .tile { background: none; box-shadow: none; }          /* hapus baris ini kalau icon-mu flat tanpa background */
-#desktop .ic .tile .ico { width: 52px; height: 52px; }
-#desktop .tb-app .ico { width: 26px; height: 26px; }
-#desktop .wt .ico { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; }
+/* ── project cards (light version for desktop windows) ── */
+#desktop .pj { background: #fff; border-color: #d5def3; }
+#desktop .pj h4 { color: var(--navy); }
+#desktop .pj-tags em { background: #e9eefb; border-color: transparent; color: var(--navy); }
+#desktop .pj-links a { border-color: #c9d3ee; }
+#desktop .pj-links a:hover { background: var(--yellow); }
 
 /* ── paper tab ── */
-#desktop .page .doc { box-sizing: border-box; max-width: 860px; margin: 0 auto; padding: 32px 40px 40px; }
+#desktop .page .doc { box-sizing: border-box; max-width: 860px; margin: 0 auto; padding: 32px 40px 40px; background: #fff; min-height: 100%; }
+#desktop .doc .kicker { letter-spacing: .14em; color: var(--blue); font-weight: 700; }
+#desktop .doc h2 { margin: 6px 0 4px; font-size: 22px; line-height: 1.25; }
+#desktop .doc .venue { margin: 0 0 18px; opacity: .7; }
 #desktop .doc .p-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 4px; font-size: 13px; opacity: .8; }
 #desktop .doc .p-meta a { color: #0a66c2; }
-#desktop .doc h3 { margin: 22px 0 6px; }
+#desktop .doc h3 { margin: 22px 0 6px; font-size: 14px; color: var(--navy); }
 #desktop .doc p { line-height: 1.6; }
 
 #desktop .p-authors { display: flex; flex-wrap: wrap; gap: 14px 28px; margin: 18px 0 20px; }
@@ -191,7 +232,6 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
                     background: #e9eefb; color: var(--navy); }
 #desktop .p-cite { padding: 12px 14px; border-left: 3px solid var(--yellow); background: #f7f8fc;
                    font-size: 13px; line-height: 1.55; }
-#desktop .go.alt { margin-left: 8px; background: transparent; border: 1.5px solid var(--navy); }
 
 /* ── LinkedIn ── */
 #desktop .li-page { background: #f3f2ef; }
@@ -270,17 +310,12 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
 #desktop .gh-pin small { display: block; margin-top: 10px; color: #8b949e; }
 #desktop .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
 #desktop .gh-graph { padding: 14px; border: 1px solid #30363d; border-radius: 8px; background: transparent; overflow-x: auto; }
-#desktop .gh-graph img { width: 100%; display: block; }
-
-.gh-graph { overflow-x: auto; padding: 14px; background: transparent;
-            border: 1px solid #30363d; border-radius: 8px; }
-.gh-heat  { display: grid; grid-template-rows: repeat(7, 11px);
-            grid-auto-flow: column; gap: 3px; width: max-content; }
-.gh-heat i { width: 11px; height: 11px; border-radius: 2px; background: #161b22; }
-.gh-heat i[data-l="1"] { background: #0e4429; }
-.gh-heat i[data-l="2"] { background: #006d32; }
-.gh-heat i[data-l="3"] { background: #26a641; }
-.gh-heat i[data-l="4"] { background: #39d353; }
+#desktop .gh-heat { display: grid; grid-template-rows: repeat(7, 11px); grid-auto-flow: column; gap: 3px; width: max-content; }
+#desktop .gh-heat i { width: 11px; height: 11px; border-radius: 2px; background: #161b22; }
+#desktop .gh-heat i[data-l="1"] { background: #0e4429; }
+#desktop .gh-heat i[data-l="2"] { background: #006d32; }
+#desktop .gh-heat i[data-l="3"] { background: #26a641; }
+#desktop .gh-heat i[data-l="4"] { background: #39d353; }
 
 /* ── Instagram (dark) ── */
 #desktop .ig-page { background: #0c1014; color: #f5f5f5; }
@@ -298,12 +333,15 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
 #desktop .ig-hl { flex: none; text-align: center; font-size: 12px; }
 #desktop .ig-hl .ring { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 4px;
                         background: var(--img) center / 150% 150% no-repeat, #1b2026;
-                        box-shadow: 0 0 0 3px #0c1014, 0 0 0 5px #55c9f2; }   /* gap + ring biru */
+                        box-shadow: 0 0 0 3px #0c1014, 0 0 0 5px #55c9f2; }
 #desktop .ig-tab { display: flex; justify-content: center; margin-top: 24px; border-top: 1px solid #262b31; }
 #desktop .ig-tab span { padding: 12px 8px; margin-top: -1px; border-top: 1px solid #f5f5f5; font-size: 12px; letter-spacing: .1em; }
 #desktop .ig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 #desktop .ig-post { aspect-ratio: 3 / 4; background: var(--img) center/cover, #1b2026; }
 #desktop .ig-post:hover { filter: brightness(.85); }
+
+/* ── touch devices: no Esc key, so hide the badge ── */
+@media (pointer: coarse) { #desktop .d-exit kbd { display: none; } }
 
 /* ── small screens ── */
 @media (max-width: 760px) {
@@ -315,6 +353,24 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
   #desktop .ic { width: auto; }
   #desktop .clock .time { font-size: 44px; }
   #desktop .tb-l, #desktop .search, #desktop .tray { display: none; }
+
+  #desktop .d-exit { top: 8px; right: 8px; padding: 6px 10px; }
+  #desktop .tb { grid-template-columns: 1fr auto; height: auto; min-height: 52px;
+                 padding-bottom: env(safe-area-inset-bottom); }
+  #desktop .tb-c { justify-self: start; overflow-x: auto; }
+  #desktop #dwin { bottom: calc(52px + env(safe-area-inset-bottom)); }
+  #desktop .wbar button[data-w="max"] { display: none; }   /* window is already fullscreen */
+  #desktop .win { border-radius: 0; }
+  #desktop #startmenu { bottom: calc(60px + env(safe-area-inset-bottom)); }
+  #desktop .d-hint { bottom: calc(64px + env(safe-area-inset-bottom)); }
+  #desktop .tabs { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+  #desktop .tabs button { flex: none; }
+  #desktop .li-banner { height: 90px; }
+  #desktop .page .doc { padding: 20px; }
+  #desktop .ig header { gap: 16px; }
+  #desktop .ig-av { width: 84px; height: 84px; }
+  #desktop .ig-stats b { margin-left: 8px; }
+  #desktop .game canvas { touch-action: none; }
 }
 
 @media (max-width: 640px) {
@@ -324,23 +380,4 @@ body.desk-open #dock { display: none; }   /* the contact dock would cover the ta
   #desktop .gh-pins, #desktop .li-int, #desktop .li-posts { grid-template-columns: 1fr; }
   #desktop .ig header { flex-direction: column; text-align: center; }
   #desktop .ig-hls { justify-content: center; }
-  #desktop .ig-stats b { margin-left: 8px; }
-}
-
-@media (max-width: 760px) {
-  #desktop .tb { grid-template-columns: 1fr auto; height: auto; min-height: 52px;
-                 padding-bottom: env(safe-area-inset-bottom); }
-  #desktop .tb-c { justify-self: start; overflow-x: auto; }
-  #desktop #dwin { bottom: calc(52px + env(safe-area-inset-bottom)); }
-  #desktop .wbar button[data-w="max"] { display: none; }   /* window sudah fullscreen */
-  #desktop .win { border-radius: 0; }
-  #desktop #startmenu { bottom: calc(60px + env(safe-area-inset-bottom)); }
-  #desktop .tabs { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-  #desktop .tabs button { flex: none; }
-  #desktop .li-banner { height: 90px; }
-  #desktop .page .doc { padding: 20px; }
-  #desktop .ig header { gap: 16px; }
-  #desktop .ig-av { width: 84px; height: 84px; }
-  #desktop .ig-stats b { margin-left: 8px; }
-  #desktop .game canvas { touch-action: none; }
 }
